@@ -7,8 +7,8 @@ const Instauto = require('instauto'); // eslint-disable-line import/no-unresolve
 const options = {
   cookiesPath: './cookies.json',
 
-  username: 'your-ig-username',
-  password: 'your-ig-password',
+  username: 'tokodrinks',
+  password: 'Helsinki2020!',
 
   // Global limit that prevents follow or unfollows (total) to exceed this number over a sliding window of one hour:
   maxFollowsPerHour: 20,
@@ -34,10 +34,10 @@ const options = {
   dontUnfollowUntilTimeElapsed: 3 * 24 * 60 * 60 * 1000,
 
   // Usernames that we should not touch, e.g. your friends and actual followings
-  excludeUsers: [],
+  // excludeUsers: ['erika_bowt','hansquanjer','khizai84','samsdesign','rickisinstafreit','nickdamgaard','drikkeriget','camilleboegh',],
 
   // If true, will not do any actions (defaults to true)
-  dryRun: false,
+  dryRun: true,
 };
 
 (async () => {
@@ -54,12 +54,15 @@ const options = {
       unfollowedDbPath: './unfollowed.json',
       // Will store all likes here
       likedPhotosDbPath: './liked-photos.json',
+      // will store a list of users not to follows
+      unFollowDbPath: './no-follow.json',
     });
 
     const instauto = await Instauto(instautoDb, browser, options);
 
     // List of usernames that we should follow the followers of, can be celebrities etc.
-    const usersToFollowFollowersOf = ['lostleblanc', 'sam_kolder'];
+    // const usersToFollowFollowersOf = ['laesk.dk'];
+    const usersToFollowFollowersOf = ['beerman_dk'];
 
     // Now go through each of these and follow a certain amount of their followers
     await instauto.followUsersFollowers({ usersToFollowFollowersOf, skipPrivate: true, enableLikeImages: true });

@@ -62,7 +62,7 @@ const Instauto = async (db, browser, options) => {
 
   const {
     addPrevFollowedUser, getPrevFollowedUser, addPrevUnfollowedUser, getLikedPhotosLastTimeUnit,
-    getPrevUnfollowedUsers, getPrevFollowedUsers, addLikedPhoto,
+    getPrevUnfollowedUsers, getPrevFollowedUsers, addLikedPhoto, addPrevNofollowedUser, getPrevNofollowedUsers,
   } = db;
 
   const getNumLikesThisTimeUnit = (time) => getLikedPhotosLastTimeUnit(time).length;
@@ -485,19 +485,26 @@ const Instauto = async (db, browser, options) => {
         const ratio = followedByCount / (followsCount || 1);
 
         if (isPrivate && skipPrivate) {
-          logger.log('User is private, skipping');
+          logger.log('User is private, skipping and adding to no-follow list');
+          // TODO add to no-folllow
+          // await addPrevNofollowedUser(follower);
+
         } else if (
           (followUserMaxFollowers != null && followedByCount > followUserMaxFollowers) ||
           (followUserMaxFollowing != null && followsCount > followUserMaxFollowing) ||
           (followUserMinFollowers != null && followedByCount < followUserMinFollowers) ||
           (followUserMinFollowing != null && followsCount < followUserMinFollowing)
         ) {
-          logger.log('User has too many or too few followers or following, skipping.', 'followedByCount:', followedByCount, 'followsCount:', followsCount);
+          logger.log('User has too many or too few followers or following, skipping and adding to no-follow list.', 'followedByCount:', followedByCount, 'followsCount:', followsCount);
+
+          // await addPrevNofollowedUser(follower);
         } else if (
           (followUserRatioMax != null && ratio > followUserRatioMax) ||
           (followUserRatioMin != null && ratio < followUserRatioMin)
         ) {
-          logger.log('User has too many followers compared to follows or opposite, skipping');
+          logger.log('User has too many followers compared to follows or opposite, skipping and adding to no-follow list');
+
+          // await addPrevNofollowedUser(follower);
         } else {
           await followCurrentUser(follower);
           numFollowedForThisUser += 1;

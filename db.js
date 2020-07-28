@@ -7,18 +7,21 @@ module.exports = async ({
   followedDbPath,
   unfollowedDbPath,
   likedPhotosDbPath,
+  nofollowedDbPath,
 
   logger = console,
 }) => {
   let prevFollowedUsers = {};
   let prevUnfollowedUsers = {};
   let prevLikedPhotos = [];
+  let prevNofollowedUsers = [];
 
   async function trySaveDb() {
     try {
       await fs.writeFile(followedDbPath, JSON.stringify(Object.values(prevFollowedUsers)));
       await fs.writeFile(unfollowedDbPath, JSON.stringify(Object.values(prevUnfollowedUsers)));
       await fs.writeFile(likedPhotosDbPath, JSON.stringify(prevLikedPhotos));
+      await fs.writeFile(nofollowedDbPath, JSON.stringify(prevNofollowedUsers));
     } catch (err) {
       logger.error('Failed to save database');
     }
@@ -39,6 +42,11 @@ module.exports = async ({
       prevLikedPhotos = JSON.parse(await fs.readFile(likedPhotosDbPath));
     } catch (err) {
       logger.warn('No likes database found');
+    }
+    try {
+      prevNofollowedUsers = keyBy(JSON.parse(await fs.readFile(prevNofollowedUsers)), 'username');
+    } catch (err) {
+      logger.warn('No no-follow database found');
     }
   }
 
@@ -67,7 +75,6 @@ module.exports = async ({
   function getTotalFollowedUsers() {
     return getPrevFollowedUsers().length; // TODO performance
   }
-
 
   function getFollowedLastTimeUnit(timeUnit) {
     const now = new Date().getTime();
@@ -100,17 +107,37 @@ module.exports = async ({
     prevUnfollowedUsers[user.username] = user;
     await trySaveDb();
   }
+  function getPrevNofollowedUsers() {
+    return Object.values(prevNofollowedUsers);
+  }
+
+  function getTotalNofollowedUsers() {
+    return getPrevNofollowedUsers().length; // TODO performance
+  }
+
+  function getNofollowedLastTimeUnit(timeUnit) {
+    const now = new Date().getTime();
+    return getPrevNofollowedUsers().filter(u => now - u.time < timeUnit);
+  }
+
+  async function addPrevNofollowedUser(user) {
+    prevNofollowedUsers[user.username] = user;
+    await trySaveDb();
+  }
 
   await tryLoadDb();
 
   return {
     save: trySaveDb,
-    addPrevFollowedUser,
     getPrevFollowedUser,
-    addPrevUnfollowedUser,
     getPrevFollowedUsers,
-    getFollowedLastTimeUnit,
+    addPrevFollowedUser,
+    addPrevUnfollowedUser,
+    addPrevNofollowedUser,
     getPrevUnfollowedUsers,
+    getFollowedLastTimeUnit,
+    getPrevNofollowedUsers,
+    getTotalNofollowedUsers,
     getUnfollowedLastTimeUnit,
     getPrevLikedPhotos,
     getLikedPhotosLastTimeUnit,
@@ -118,5 +145,6 @@ module.exports = async ({
     getTotalFollowedUsers,
     getTotalUnfollowedUsers,
     getTotalLikedPhotos,
+    getNofollowedLastTimeUnit,
   };
 };
